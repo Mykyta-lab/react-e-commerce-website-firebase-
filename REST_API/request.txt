@@ -1,0 +1,49 @@
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+GET https://firebasedynamiclinks.googleapis.com/v1/`SHORT_DYNAMIC_LINK`/linkStats?durationDays=`DURATION`
+
+Authorization: Bearer `ACCESS_TOKEN`
+/////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+const admin = require('firebase-admin');
+
+function getAccessToken() {
+  return admin.credential.applicationDefault().getAccessToken()
+      .then(accessToken => {
+        return accessToken.access_token;
+      })
+      .catch(err => {
+        console.error('Unable to get access token');
+        console.error(err);
+      });
+}
+
+const fetch = require('node-fetch');
+
+async function listProjects() {
+  const accessToken = getAccessToken();
+  const uri = 'https://firebase.googleapis.com/v1beta1/availableProjects';
+  const options = {
+    method: 'GET',
+    headers: {
+      'Authorization': 'Bearer ' + accessToken,
+    },
+  };
+
+  try {
+    const rawResponse = await fetch(uri, options);
+    const resp = await rawResponse.json();
+    const projects = resp['projectInfo'];
+    console.log('Project total: ' + projects.length);
+    console.log('');
+    for (let i in projects) {
+      const project = projects[i];
+      console.log('Project ' + i);
+      console.log('ID: ' + project['project']);
+      console.log('Display Name: ' + project['displayName']);
+      console.log('');
+    }
+  } catch(err) {
+    console.error(err);
+  }
+}
